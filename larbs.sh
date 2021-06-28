@@ -1,6 +1,7 @@
 #!/bin/sh
 # Luke's Auto Rice Boostrapping Script (LARBS)
 # by Luke Smith <luke@lukesmith.xyz>
+# modified by Jensun Ravichandran <jjensun@gmail.com>
 # License: GNU GPLv3
 
 ### OPTIONS AND VARIABLES ###
@@ -14,10 +15,10 @@ while getopts ":a:r:b:p:h" o; do case "${o}" in
 	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit 1 ;;
 esac done
 
-[ -z "$dotfilesrepo" ] && dotfilesrepo="https://github.com/lukesmithxyz/voidrice.git"
-[ -z "$progsfile" ] && progsfile="https://raw.githubusercontent.com/LukeSmithxyz/LARBS/master/progs.csv"
+[ -z "$dotfilesrepo" ] && dotfilesrepo="https://github.com/theblackfly/voidrice.git"
+[ -z "$progsfile" ] && progsfile="https://raw.githubusercontent.com/theblackfly/LARBS/blackfly/progs.csv"
 [ -z "$aurhelper" ] && aurhelper="paru"
-[ -z "$repobranch" ] && repobranch="master"
+[ -z "$repobranch" ] && repobranch="blackfly"
 
 ### FUNCTIONS ###
 
@@ -62,6 +63,24 @@ adduserandpass() { \
 	repodir="/home/$name/.local/src"; mkdir -p "$repodir"; chown -R "$name":wheel "$(dirname "$repodir")"
 	echo "$name:$pass1" | chpasswd
 	unset pass1 pass2 ;}
+
+mkuserdirs() { \
+  mkdir -p /home/"$name"/documents/org && chown -R "$name":wheel /home/"$name"/documents
+  mkdir -p /home/"$name"/downloads/tmp && chown -R "$name":wheel /home/"$name"/downloads
+  mkdir -p /home/"$name"/pictures/screenshots && chown -R "$name":wheel /home/"$name"/pictures
+  mkdir -p /home/"$name"/music && chown "$name":wheel /home/"$name"/music
+}
+
+configuregit() { \
+  sudo -u "$name" git config --global user.name "$realname"
+  sudo -u "$name" git config --global user.email "$email"
+  sudo -u "$name" git config --global init.defaultBranch master
+  sudo -u "$name" git config --global pull.rebase false
+  sudo -u "$name" git config --global user.signingkey "$email"
+  sudo -u "$name" git config --global commit.gpgsign true
+  sudo -u "$name" git config --global tag.gpgSign true
+  sudo -u "$name" git config --global gpg.program gpg2
+}
 
 refreshkeys() { \
 	dialog --infobox "Refreshing Arch Keyring..." 4 40
@@ -136,6 +155,22 @@ putgitrepo() { # Downloads a gitrepo $1 and places the files in $2 only overwrit
 	sudo -u "$name" cp -rfT "$dir" "$2"
 	}
 
+putdotfiles() {
+  # Download the dotfiles gitrepo $1 into $2 and deploy it into $3 only overwriting conflicts.
+  dialog --infobox "Downloading and installing voidrice..." 4 60
+  [ -z "$4" ] && branch="master" || branch="$repobranch"
+  rm -rf "$2"  # git cannot clone into a non-empty directory
+  git clone -b "$branch" "$1" "$2" >/dev/null 2>&1
+  rm -rf "$3/.git"
+  rm -rf "$3/.config"
+  cd "$2" && git config core.worktree "$3"
+  cd "$2" && git submodule init >/dev/null 2>&1
+  cd "$2" && git submodule update >/dev/null 2>&1
+  echo "gitdir: $2/.git" > "$3/.git"
+  # cd "$3" && git reset --hard "$branch" >/dev/null 2>&1
+  chown -R "$name":wheel "$2" "$3"
+}
+
 systembeepoff() { dialog --infobox "Getting rid of that retarded error beep sound..." 10 50
 	rmmod pcspkr
 	echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf ;}
@@ -160,6 +195,9 @@ getuserandpass || error "User exited."
 
 # Give warning if user already exists.
 usercheck || error "User exited."
+
+# Get real name and email to configure git.
+getuserinfo
 
 # Last chance for user to back out before install.
 preinstallmsg || error "User exited."
@@ -192,6 +230,12 @@ grep -q "ILoveCandy" /etc/pacman.conf || sed -i "/#VerbosePkgLists/a ILoveCandy"
 # Use all cores for compilation.
 sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /etc/makepkg.conf
 
+# Write the user's .gitconfig file
+configuregit
+
+# Make basic user directories
+mkuserdirs
+
 manualinstall $aurhelper || error "Failed to install AUR helper."
 
 # The command that does all the installing. Reads the progs.csv file and
@@ -204,7 +248,8 @@ dialog --title "LARBS Installation" --infobox "Finally, installing \`libxft-bgra
 yes | sudo -u "$name" $aurhelper -S libxft-bgra-git >/dev/null 2>&1
 
 # Install the dotfiles in the user's home directory
-putgitrepo "$dotfilesrepo" "/home/$name" "$repobranch"
+# putgitrepo "$dotfilesrepo" "/home/$name" "$repobranch"
+putdotfiles "$dotfilesrepo" "/home/$name/voidrice" "/home/$name" "$repobranch"
 rm -f "/home/$name/README.md" "/home/$name/LICENSE" "/home/$name/FUNDING.yml"
 # Create default urls file if none exists.
 [ ! -f "/home/$name/.config/newsboat/urls" ] && echo "http://lukesmith.xyz/rss.xml
