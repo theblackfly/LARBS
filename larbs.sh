@@ -162,7 +162,7 @@ putdotfiles() {
   rm -rf "$2"  # git cannot clone into a non-empty directory
   git clone -b "$branch" "$1" "$2" >/dev/null 2>&1
   rm -rf "$3/.git"
-  rm -rf "$3/.config"
+  # rm -rf "$3/.config"
   cd "$2" && git config core.worktree "$3"
   cd "$2" && git submodule init >/dev/null 2>&1
   cd "$2" && git submodule update >/dev/null 2>&1
