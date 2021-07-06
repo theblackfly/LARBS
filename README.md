@@ -92,6 +92,12 @@ paru -S aic94xx-firmware
 paru -S upd72020x-fw
 ```
 
+## HDMI Audio
+
+```sh
+sudo pacman -Syu xf86-video-ati
+```
+
 ## Eduroam
 
 Example for HS-Mittweida, Germany:
