@@ -173,6 +173,7 @@ https://github.com/settings/tokens in order to use GitHub from
 
 ``` sh
 sudo pacman -Syu rustup
+rustup install stable
 git clone git@github.com:r-darwish/topgrade.git ~/.local/src/topgrade
 cargo install cargo-update
 cargo install --path ~/.local/src/topgrade
