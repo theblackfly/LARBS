@@ -209,6 +209,7 @@ If you would like to use Microsoft's pyright language server, install it with:
 
 ```sh
 paru -S npm
+npm config set userconfig $XDG_CONFIG_HOME/npmrc
 npm config set cache $XDG_CACHE_HOME/npm
 sudo npm install -g pyright
 ```
