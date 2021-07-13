@@ -169,13 +169,18 @@ Run `git config --global github.oauth-token <token>` with a token generated from
 https://github.com/settings/tokens in order to use GitHub from
 [magit](https://www.spacemacs.org/layers/+source-control/github/README.html).
 
+### Rust dev
+
+```sh
+sudo pacman -Syu rustup
+rustup install stable
+rustup component add rls rust-analysis rust-src clippy
+```
+
 ### Topgrade (https://github.com/r-darwish/topgrade)
 
 ``` sh
-sudo pacman -Syu rustup
-rustup install stable
 git clone git@github.com:r-darwish/topgrade.git ~/.local/src/topgrade
-cargo install cargo-update
 cargo install --path ~/.local/src/topgrade
 ```
 
