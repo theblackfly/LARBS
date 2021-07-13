@@ -27,7 +27,7 @@ installpkg(){ pacman --noconfirm --needed -S "$1" >/dev/null 2>&1 ;}
 error() { echo "ERROR: $1" ; exit 1;}
 
 welcomemsg() { \
-	dialog --title "Welcome!" --msgbox "Welcome to Blackfly's fork of Luke's Auto-Rice Bootstrapping Script!\\n\\nThis script will automatically install a fully-featured Linux desktop, which I use on all my machines.\\n\\n-Jensun" 10 60
+	dialog --title "Welcome!" --msgbox "Welcome to Blackfly's fork of Luke's Auto-Rice Bootstrapping Script!\\n\\nThis script will automatically install a fully-featured Linux desktop, which I use on all my machines.\\n\\n-Jensun" 12 60
 
 	dialog --colors --title "Important Note!" --yes-label "All ready!" --no-label "Return..." --yesno "Be sure the computer you are using has current pacman updates and refreshed Arch keyrings.\\n\\nIf it does not, the installation of some programs might fail." 8 70
 	}
@@ -63,6 +63,12 @@ adduserandpass() { \
 	repodir="/home/$name/.local/src"; mkdir -p "$repodir"; chown -R "$name":wheel "$(dirname "$repodir")"
 	echo "$name:$pass1" | chpasswd
 	unset pass1 pass2 ;}
+
+getnameandemail() { \
+  # Prompts user for new username an password.
+  realname=$(dialog --inputbox "Enter your real name. This will only be used to configure git." 10 60 3>&1 1>&2 2>&3 3>&1) || exit 1
+  email=$(dialog --inputbox "Enter your email. This will only be used to configure git." 10 60 3>&1 1>&2 2>&3 3>&1) || exit 1
+}
 
 mkuserdirs() { \
   mkdir -p /home/"$name"/documents/org && chown -R "$name":wheel /home/"$name"/documents
@@ -197,7 +203,7 @@ getuserandpass || error "User exited."
 usercheck || error "User exited."
 
 # Get real name and email to configure git.
-getuserinfo
+getnameandemail
 
 # Last chance for user to back out before install.
 preinstallmsg || error "User exited."
